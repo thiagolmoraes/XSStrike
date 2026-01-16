@@ -1,10 +1,52 @@
 import json
 import random
 import re
+import sys
+from pathlib import Path
 from urllib.parse import urlparse
 
 import core.config
 from core.config import xsschecker
+
+
+def find_db_file(filename):
+    #Find a file in the db directory, works both when running directly and when installed as package
+    
+    # Get the path of the utils module to find the project root
+    utils_path = Path(__file__).parent
+    
+    db_paths = [
+        # When running directly (not installed) - relative to core/utils.py -> project root
+        utils_path.parent / 'db' / filename,
+        # When installed as package, try relative to script location
+        Path(sys.path[0]) / 'db' / filename,
+        # When installed, try in site-packages/xsstrike/db/ (if db is installed as package data)
+        utils_path.parent.parent / 'db' / filename,
+        # When installed, try in site-packages/db/ (if db is at root level)
+        Path(sys.path[0]).parent / 'db' / filename if len(sys.path) > 0 else None,
+        # Fallback: try current working directory
+        Path.cwd() / 'db' / filename,
+    ]
+    
+    # Filter out None values
+    db_paths = [p for p in db_paths if p is not None]
+    
+    for db_path in db_paths:
+        if db_path.exists():
+            return db_path
+    
+    # Last resort: try to find it anywhere in sys.path and common installation locations
+    for path in sys.path:
+        # Try direct db/ subdirectory
+        potential_path = Path(path) / 'db' / filename
+        if potential_path.exists():
+            return potential_path
+        # Try xsstrike/db/ subdirectory (if installed as package)
+        potential_path = Path(path) / 'xsstrike' / 'db' / filename
+        if potential_path.exists():
+            return potential_path
+    
+    return None
 
 
 def converter(data, url=False):

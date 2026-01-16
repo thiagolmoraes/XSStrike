@@ -20,7 +20,7 @@
   </a>
 </p>
 
-![multi xss](https://image.ibb.co/gOCV5L/Screenshot-2018-11-19-13-33-49.png)
+![multi xss](asset/image.png)
 
 <p align="center">
   <a href="https://github.com/s0md3v/XSStrike/wiki">XSStrike Wiki</a> •
@@ -61,16 +61,136 @@ Apart from that, XSStrike has crawling, fuzzing, parameter discovery, WAF detect
 - Payload Encoding
 
 ### Installation
+
+#### Method 1: Traditional Installation
 Enter the following commands one by one in terminal:
-```
+```bash
 git clone https://github.com/s0md3v/XSStrike
 cd XSStrike
-pip install -r requirements.txt --break-system-packages
+pip install -r requirements.txt
 ```
 
 Now, XSStrike can be used at any time as follows:
-```
+```bash
 python xsstrike.py
+```
+
+#### Method 2: Install as Python Package
+You can install XSStrike as a Python package using setuptools:
+```bash
+git clone https://github.com/s0md3v/XSStrike
+cd XSStrike
+pip install .
+```
+
+After installation, you can use XSStrike from anywhere:
+```bash
+xsstrike -u "http://example.com/page?param=value"
+```
+
+#### Method 3: Using uv (Fast Python Package Installer)
+If you have [uv](https://github.com/astral-sh/uv) installed:
+```bash
+git clone https://github.com/s0md3v/XSStrike
+cd XSStrike
+uv pip install .
+```
+
+Then use XSStrike:
+```bash
+xsstrike -u "http://example.com/page?param=value"
+```
+
+#### Method 4: Docker
+Build and run XSStrike using Docker:
+```bash
+git clone https://github.com/s0md3v/XSStrike
+cd XSStrike
+docker build -t xsstrike:latest .
+docker run --rm xsstrike:latest -u "http://example.com/page?param=value"
+```
+
+### Usage Examples
+
+> **Note:** If you installed XSStrike as a package (Method 2, 3, or 4), you can use `xsstrike` command directly instead of `python xsstrike.py`. Both methods work identically.
+
+#### Basic Scanning
+```bash
+# Scan a single URL with parameters
+python xsstrike.py -u "http://example.com/page?param=value"
+# Or if installed: xsstrike -u "http://example.com/page?param=value"
+
+# Scan with POST data
+python xsstrike.py -u "http://example.com/login" --data "username=test&password=test"
+# Or if installed: xsstrike -u "http://example.com/login" --data "username=test&password=test"
+```
+
+#### Fuzzer Mode
+```bash
+# Test fuzzing strings on GET parameters
+python xsstrike.py --fuzzer -u "http://example.com/page?param=value"
+
+# Fuzzer with POST data
+python xsstrike.py --fuzzer -u "http://example.com/api" --data "param1=value1&param2=value2"
+
+# Fuzzer with encoding
+python xsstrike.py --fuzzer -u "http://example.com/page?param=value" -e base64
+```
+
+#### Crawl Mode
+```bash
+# Crawl and test all forms/URLs found
+python xsstrike.py --crawl -u "http://example.com"
+
+# Crawl with custom depth level
+python xsstrike.py --crawl -u "http://example.com" -l 3
+
+# Crawl with multiple threads
+python xsstrike.py --crawl -u "http://example.com" -t 10
+
+# Crawl with blind XSS payloads
+python xsstrike.py --crawl -u "http://example.com" --blind
+```
+
+#### Advanced Options
+```bash
+# Use custom payloads from file
+python xsstrike.py -u "http://example.com/page?param=value" -f payloads.txt
+
+# Add custom headers
+python xsstrike.py -u "http://example.com/page?param=value" --headers "Cookie: session=abc123"
+# Or use interactive prompt:
+python xsstrike.py -u "http://example.com/page?param=value" --headers
+
+# JSON POST data
+python xsstrike.py -u "http://example.com/api" --data '{"key":"value"}' --json
+
+# Inject payloads in URL path
+python xsstrike.py -u "http://example.com/page" --path
+
+# Custom delay and timeout
+python xsstrike.py -u "http://example.com/page?param=value" -d 2 --timeout 10
+
+# Skip DOM checking
+python xsstrike.py -u "http://example.com/page?param=value" --skip-dom
+
+# Don't ask to continue
+python xsstrike.py -u "http://example.com/page?param=value" --skip
+```
+
+#### Using Seeds File
+```bash
+# Load multiple URLs from a file for crawling
+python xsstrike.py --seeds urls.txt --crawl
+```
+
+#### Logging Options
+```bash
+# Set console log level
+python xsstrike.py -u "http://example.com/page?param=value" --console-log-level DEBUG
+
+# Set file log level and custom log file
+python xsstrike.py -u "http://example.com/page?param=value" --file-log-level INFO --log-file scan.log
 ```
 
 ### Documentation
