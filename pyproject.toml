@@ -10,7 +10,25 @@ dependencies = [
     "rich>=14.2.0",
     "setuptools>=80.9.0",
     "tld>=0.13.1",
+    "typer>=0.12.3",
+    "pydantic>=2.7.1",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "ruff>=0.4.4",
+    "mypy>=1.10.0",
+    "black>=24.4.2",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
 
 [project.scripts]
 xsstrike = "xsstrike:main"
