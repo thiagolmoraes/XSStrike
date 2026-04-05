@@ -6,14 +6,21 @@ class XSSConfig(BaseModel):
     delay: int = 0
     threadCount: int = 10
     timeout: int = 10
-    proxies: Dict[str, str] = {
-        'http': 'http://0.0.0.0:8080',
-        'https': 'http://0.0.0.0:8080'
-    }
+    proxies: Dict[str, str] = {}
+    cookies: Dict[str, str] = {}
     blindPayload: str = ""
     xsschecker: str = 'v3dm0s'
     minEfficiency: int = 90
     defaultEditor: str = 'nano'
+
+class Finding(BaseModel):
+    """Represents a single XSS finding."""
+    url: str
+    type: str  # Reflected, Stored, DOM
+    payload: str
+    parameter: Optional[str] = None
+    confirmed: bool = False  # True if triggered in browser
+    level: int = 1
 
 class ScanContext(BaseModel):
     """Runtime context for the current scan session."""
@@ -25,6 +32,7 @@ class ScanContext(BaseModel):
     checkedForms: Dict[str, Any] = Field(default_factory=dict)
     definitions: Dict[str, Any] = Field(default_factory=dict)
     payloads: List[str] = Field(default_factory=list)
+    findings: List[Finding] = Field(default_factory=list)
     encoding: Optional[Any] = None
 
 # Legacy global variables (to be removed once all modules are refactored)

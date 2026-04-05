@@ -10,9 +10,8 @@ from rich.panel import Panel
 
 # Local imports
 from core.config import XSSConfig, ScanContext, default_headers, default_payloads
-from core.utils import extractHeaders, reader, find_db_file
+from core.utils import extractHeaders, extract_cookies, reader, find_db_file
 import core.log
-
 console = Console()
 app = typer.Typer(help="XSStrike Advanced XSS Scanner (Modernized)")
 
@@ -35,6 +34,7 @@ def main(
     crawl: bool = typer.Option(False, "--crawl", help="Crawl mode"),
     level: int = typer.Option(2, "-l", "--level", help="Crawl depth"),
     headers: Optional[str] = typer.Option(None, "--headers", help="Custom headers"),
+    cookies: Optional[str] = typer.Option(None, "--cookies", help="Custom session cookies"),
     seeds: Optional[str] = typer.Option(None, "--seeds", help="Seeds file"),
     payload_file: Optional[str] = typer.Option(None, "-f", "--file", help="Custom payloads file"),
     skip_dom: bool = typer.Option(False, "--skip-dom", help="Skip DOM checking"),
@@ -51,6 +51,9 @@ def main(
         threadCount=threads,
         timeout=timeout
     )
+    
+    if cookies:
+        config.cookies = extract_cookies(cookies)
     
     # Initialize Scan Context
     context = ScanContext(config=config)
@@ -79,18 +82,46 @@ def main(
     core.log.console_log_level = console_log_level
     logger = core.log.setup_logger()
     
-    console.print(f"[bold green]Scanning target:[/bold green] {url}")
+    # 1. WAF Detection
+    from core.wafDetector import WAFDetector
+    waf_detector = WAFDetector(context)
+    waf_name = waf_detector.detect()
     
-    # Main Execution Flow
+    # 2. Main Execution Flow
     if fuzzer:
-        console.print("[blue]Fuzzer mode not yet fully refactored...[/blue]")
+        from modes.fuzzer import XSSFuzzer
+        fuzzer_engine = XSSFuzzer(context)
+        fuzzer_engine.fuzz()
+        
     elif crawl:
-        console.print("[blue]Crawl mode not yet fully refactored...[/blue]")
+        from modes.crawl import XSScrawler
+        crawler_engine = XSScrawler(context)
+        crawler_engine.run(level=level)
+        
     else:
         # Standard Scan using the modernized Scanner class
         from modes.scan import Scanner
         scanner = Scanner(context)
         scanner.scan(skip_dom=skip_dom, skip_confirm=False)
+
+    # --- FINAL SUMMARY ---
+    if context.findings:
+        from rich.table import Table
+        table = Table(title="XSStrike Scan Summary", show_header=True, header_style="bold magenta")
+        table.add_column("Type", style="dim")
+        table.add_column("Target URL", no_wrap=False)
+        table.add_column("Payload", style="cyan")
+        table.add_column("Status", justify="center")
+
+        for f in context.findings:
+            status = "[bold green]CONFIRMED[/bold green]" if f.confirmed else "[yellow]POTENTIAL[/yellow]"
+            table.add_row(f.type, f.url, f.payload, status)
+        
+        console.print("\n")
+        console.print(table)
+        console.print(f"\n[bold green]Scan finished. Total vulnerabilities confirmed: {len([f for f in context.findings if f.confirmed])}[/bold green]")
+    else:
+        console.print("\n[bold yellow]Scan finished. No vulnerabilities found.[/bold yellow]")
 
 def handle_sigint(sig, frame):
     console.print("\n[bold yellow]Aborted by user.[/bold yellow]")
