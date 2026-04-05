@@ -81,13 +81,16 @@ def main(
     
     console.print(f"[bold green]Scanning target:[/bold green] {url}")
     
-    # Legacy flow placeholders - these will be refactored into classes later
+    # Main Execution Flow
     if fuzzer:
         console.print("[blue]Fuzzer mode not yet fully refactored...[/blue]")
     elif crawl:
         console.print("[blue]Crawl mode not yet fully refactored...[/blue]")
     else:
-        console.print("[blue]Standard scan not yet fully refactored...[/blue]")
+        # Standard Scan using the modernized Scanner class
+        from modes.scan import Scanner
+        scanner = Scanner(context)
+        scanner.scan(skip_dom=skip_dom, skip_confirm=False)
 
 def handle_sigint(sig, frame):
     console.print("\n[bold yellow]Aborted by user.[/bold yellow]")
