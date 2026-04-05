@@ -20,6 +20,7 @@ dev = [
     "ruff>=0.4.4",
     "mypy>=1.10.0",
     "black>=24.4.2",
+    "playwright>=1.44.0",
 ]
 
 [tool.ruff]
