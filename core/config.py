@@ -19,13 +19,24 @@ class ScanContext(BaseModel):
     """Runtime context for the current scan session."""
     config: XSSConfig = Field(default_factory=XSSConfig)
     target: Optional[str] = None
-    paramData: Optional[str] = None
+    paramData: Any = None
     headers: Dict[str, str] = Field(default_factory=dict)
     checkedScripts: Set[str] = Field(default_factory=set)
     checkedForms: Dict[str, Any] = Field(default_factory=dict)
     definitions: Dict[str, Any] = Field(default_factory=dict)
     payloads: List[str] = Field(default_factory=list)
     encoding: Optional[Any] = None
+
+# Legacy global variables (to be removed once all modules are refactored)
+xsschecker = XSSConfig().xsschecker
+blindPayload = XSSConfig().blindPayload
+timeout = XSSConfig().timeout
+threadCount = XSSConfig().threadCount
+delay = XSSConfig().delay
+proxies = XSSConfig().proxies
+headers = {} # Default empty for legacy
+payloads = [] # Default empty for legacy
+globalVariables = {} # God object placeholder
 
 # Constants (Legacy support or immutable definitions)
 specialAttributes = ['srcdoc', 'src']
